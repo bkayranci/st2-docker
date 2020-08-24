@@ -1,4 +1,4 @@
-FROM ubuntu:trusty
+FROM ubuntu:xenial
 
 # let Upstart know it's in a container
 ENV container docker
@@ -20,7 +20,9 @@ RUN DEBIAN_FRONTEND=noninteractive \
       crudini \
       uuid-runtime \
       apache2-utils \
-      bash-completion
+      bash-completion \
+      locales \
+      supervisor
 
 # enable bash-completion
 RUN dpkg-divert /etc/bash.bashrc && \
@@ -82,9 +84,7 @@ RUN /install.sh
 
 # Unless these lines are changed, the services are not started when runlevel -> 2
 # Call mistral-db-manage before mistral starts
-RUN sed -i 's/start on filesystem and net-device-up IFACE!=lo/start on runlevel \[2345\]/' /etc/init/st2*.conf \
-    && sed -i 's/stop on starting rc RUNLEVEL=\[016\]/stop on runlevel \[!2345\]/' /etc/init/st2*.conf \
-    && sed -i 's/start on filesystem and net-device-up IFACE!=lo/start on runlevel \[2345\]/' /etc/init/mistral.conf \
+RUN sed -i 's/start on filesystem and net-device-up IFACE!=lo/start on runlevel \[2345\]/' /etc/init/mistral.conf \
     && sed -i 's/stop on starting rc RUNLEVEL=\[016\]/stop on runlevel \[!2345\]/' /etc/init/mistral.conf \
     && sed -i '/start mistral-api/i\  /opt/stackstorm/mistral/bin/mistral-db-manage --config-file /etc/mistral/mistral.conf upgrade head\n\
   /opt/stackstorm/mistral/bin/mistral-db-manage --config-file /etc/mistral/mistral.conf populate\n' /etc/init/mistral.conf
@@ -137,7 +137,8 @@ RUN wget -O /dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.
 COPY bin/entrypoint-1ppc.sh /st2-docker/bin/entrypoint-1ppc.sh
 COPY bin/inject_env.py /st2-docker/bin/inject_env.py
 COPY config/nginx.st2-1ppc.conf.tpl /etc/nginx/conf.d/st2-1ppc.conf.tpl
-
+COPY supervisor/* /etc/supervisor/conf.d/
+COPY st2-bin/* /st2-docker/bin/st2-bin/
 # Default username/password is used unless overridden by supplying ST2_USER and/or ST2_PASSWORD
 # environment variables to `docker run` after the name of the image:
 #   docker run -e ST2_USER... image

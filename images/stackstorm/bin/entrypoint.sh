@@ -72,4 +72,6 @@ fi
 
 ( cd /etc/nginx/conf.d && ln -sf st2-base.cnf st2.conf )
 
-exec /sbin/init
+service start mistral
+
+exec /usr/bin/supervisord --nodaemon
