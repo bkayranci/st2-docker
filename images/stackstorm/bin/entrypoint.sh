@@ -1,5 +1,10 @@
 #!/bin/bash
 
+mkdir -p /var/log/supervisor
+mkdir -p /var/log/mistral
+chown -R st2:root /var/log/st2
+chown -R mistral:root /var/log/mistral
+
 # Create htpasswd file and login to st2 using specified username/password
 htpasswd -b /etc/st2/htpasswd ${ST2_USER} ${ST2_PASSWORD}
 
